@@ -1,15 +1,30 @@
 package ru.iceberg.projects.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
+
+import javax.persistence.Column;
+import javax.persistence.Id;
 
 @Data
 @NoArgsConstructor
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class User {
-    long id;
-    Role role;
-    String name;
+
+    @Id
     long chatId;
+
+    @Column(nullable = false)
+    int role;
+
+    @Column(nullable = false) // может и null держать ?
+    String name;
+
+    public User(long chatId, String name) {
+        this.chatId = chatId;
+        this.role = 1;
+        this.name = name;
+    }
+
 }

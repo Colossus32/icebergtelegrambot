@@ -18,7 +18,7 @@ public class Project {
     User author;
     String name;
     String path;
-    Set<String> tags;
+    String tags;
     Set<User> participants;
 
 }

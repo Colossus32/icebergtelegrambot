@@ -8,3 +8,4 @@ spring.jpa.hibernate.ddl-auto=update
 logging.level.org.hibernate.SQL = DEBUG
 
 #My variables
+bot.id =
