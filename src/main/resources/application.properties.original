@@ -1,0 +1,10 @@
+spring.datasource.url=
+spring.datasource.username=
+spring.datasource.password=
+
+#Hibernate
+ddspring.jpa.properties.hibernate.dialect= org.hibernate.dialect.MySQL5InnoDBDialect
+spring.jpa.hibernate.ddl-auto=update
+logging.level.org.hibernate.SQL = DEBUG
+
+#My variables
