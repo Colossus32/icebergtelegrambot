@@ -28,6 +28,16 @@ public class UserController {
         }
     }
 
+    @PostMapping("/guests")
+    public void saveGuest(@RequestParam("id") long id){
+        User checker = userService.findUserById(id);
+        if (checker != null) log.error("такой пользователь уже есть в базе.");
+        else {
+            userService.saveUser(new User(id));
+            log.info(String.format("Добавлен пользователь с id=%d.", id));
+        }
+    }
+
     @DeleteMapping
     public void deleteUser(@RequestParam("id") long id){
         User checker = userService.findUserById(id);
@@ -37,7 +47,7 @@ public class UserController {
         } else log.error(String.format("Пользователя с id=%d нет в базе.", id));
     }
 
-    @PostMapping
+    @PutMapping
     public void updateUser(@RequestParam(value = "id")long id, @RequestParam(value = "name") String name){
         User fromDB = userService.findUserById(id);
         if (fromDB != null) {
@@ -48,6 +58,11 @@ public class UserController {
             log.warn(String.format("Пользователя с id=%d нет в базе.", id));
             userService.saveUser(new User(id, name));
         }
+    }
+
+    @GetMapping("/all")
+    public String showAllUsers(){
+         return userService.showAllUsers();
     }
 
     //нужно ли выводить пользователя? пока не понятно

@@ -6,4 +6,6 @@ public interface UserService {
     void saveUser(User user);
     void deleteUserById (long id);
     User findUserById(long id);
+
+    String showAllUsers();
 }

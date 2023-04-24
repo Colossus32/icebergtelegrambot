@@ -2,14 +2,27 @@ package ru.iceberg.projects.service;
 
 import ru.iceberg.projects.entity.Project;
 
-import java.util.Set;
+import java.util.Optional;
 
 public interface ProjectService {
-    boolean addProject(Project project);
-    void deleteProjectById(long id);
-    boolean updateProject(Project project);
-    Project findById(long id);
-    Set<Project> findProjectsByTag(String tag);
-    void addTag (String tag);
-    String createPathInDB (String nameForDB);
+    String addProject(Long authorId, String name);
+    String addProject(Long authorId, String name, String path);
+    String deleteProjectById(long id);
+    boolean updateProject(long id, Project project);
+    Optional<Project> findById(long id);
+    String findProjectsByTag(String tag);
+    String addTag (long id,String tag);
+    String findProjectsByIsActive();
+
+    String finishProjectById(long id);
+
+    String showAllProjects();
+
+    String changeName(long id, String name);
+
+    String addWorkerToProject(long projectid, int workerid);
+
+    String reportMail();
+
+    String findMyActiveProjects(long id);
 }
