@@ -7,7 +7,6 @@ import ru.iceberg.projects.util.IceUtility;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -26,8 +25,10 @@ public class Project {
     @Column(nullable = false)
     boolean isActive;
 
-    @ManyToOne(fetch = FetchType.EAGER , cascade = {CascadeType.REFRESH, CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE})
+    //@ManyToOne(fetch = FetchType.EAGER)
+    @OneToOne
     @JoinColumn(name = "author_id", referencedColumnName = "id")
+    //@Column(nullable = false)
     User author;
 
     @Column(nullable = false, unique = true)
@@ -38,9 +39,10 @@ public class Project {
 
     String tags;
 
-    @OneToMany(targetEntity = User.class, orphanRemoval = true, fetch = FetchType.EAGER, cascade = {CascadeType.REFRESH, CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE})
+    /*@OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "participants_set")
-    Set<User> participants;
+    @OnDelete(action = OnDeleteAction.CASCADE)*/
+    String participants;
 
     public Project(User author, String name) {
         this.author = author;
@@ -48,7 +50,7 @@ public class Project {
         this.dateOfCreation = new Date();
         this.isActive = true;
         this.path = IceUtility.createPath(name);
-        this.participants = Set.of(author);
+        this.participants = String.format("%s ", author.getId());
         this.tags = name + " ";
     }
 
@@ -58,7 +60,7 @@ public class Project {
         this.path = path;
         this.dateOfCreation = new Date();
         this.isActive = true;
-        this.participants = Set.of(author);
+        this.participants = String.format("%s ", author.getId());
         this.tags = name + " ";
     }
 }

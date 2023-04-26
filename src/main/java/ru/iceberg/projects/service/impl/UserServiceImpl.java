@@ -7,6 +7,7 @@ import ru.iceberg.projects.repo.UserRepo;
 import ru.iceberg.projects.service.UserService;
 
 import java.util.List;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @Service
@@ -39,6 +40,14 @@ public class UserServiceImpl implements UserService {
         for (User user : list){
             builder.append(String.format("№=%d | %s\n", index++, user.getName()));
         }
+        return builder.toString();
+    }
+
+    @Override
+    public String getAllIds() {
+        StringBuilder builder = new StringBuilder();
+        List<User> userList = repo.findAll();
+        for (User u : userList) builder.append(u.getId()).append(' ');
         return builder.toString();
     }
 }

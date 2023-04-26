@@ -8,4 +8,6 @@ public interface UserService {
     User findUserById(long id);
 
     String showAllUsers();
+
+    String getAllIds();
 }

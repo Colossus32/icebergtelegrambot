@@ -24,7 +24,6 @@ public class ProjectBot {
 
     TelegramBot bot;
 
-    //@Value("${bot.port}")
     String port;
 
     @Value("${ss.id}")
@@ -136,6 +135,15 @@ public class ProjectBot {
                 }
             } else {
                 log.warn("нет активных проектов"); //////////////////////////////////////////////////////////////////////////сделать напоминание о том, что проектов нет для всех users
+                request = HttpRequest.newBuilder()
+                        .uri(URI.create(String.format("http://localhost:%s/api/v1/users/allids", port)))
+                        .GET()
+                        .build();
+                response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+                String[] sIds = response.body().split(" ");
+                for (String stringId : sIds){
+                    bot.execute(new SendMessage(Long.parseLong(stringId), "Нет активных проектов."));
+                }
             }
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();

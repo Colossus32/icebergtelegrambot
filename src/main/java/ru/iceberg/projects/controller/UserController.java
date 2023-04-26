@@ -65,5 +65,8 @@ public class UserController {
          return userService.showAllUsers();
     }
 
-    //нужно ли выводить пользователя? пока не понятно
+    @GetMapping("/allids")
+    public String getAllIds(){
+        return userService.getAllIds();
+    }
 }

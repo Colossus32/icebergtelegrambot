@@ -109,7 +109,13 @@ public class ProjectServiceImpl implements ProjectService {
         for (Project p : result) {
             String active = p.isActive() ? "активен" : "завершен";
             StringBuilder parts = new StringBuilder();
-            for (User user : p.getParticipants()) parts.append(user.getName()).append(' ');
+            //Set<User> participants = p.getParticipants(); //////////////////////////////////////////////////////////" " or "-"
+            String[] strParts = p.getParticipants().split(" ");
+            Set<User> userSet = new HashSet<>();
+            for (String everyPart : strParts) {
+                userSet.add(userRepo.getById(Long.parseLong(everyPart)));
+            }
+            for (User user : userSet) parts.append(user.getName()).append(' ');
             builder.append(String.format("id=%d | %s | %s| %s | %s \n",
                     p.getId(), p.getName(), parts.toString(), active, IceUtility.transformToLongPath(p.getPath())));
         }
@@ -193,10 +199,11 @@ public class ProjectServiceImpl implements ProjectService {
             List<User> userList = userRepo.findAll();
             if (workerid > userList.size() || workerid < 1) return INPUT_ERROR;
             else {
-                Set<User> oldSet = freshProject.getParticipants();
+                //Set<User> oldSet = freshProject.getParticipants();
+                //String updatingParticipants = freshProject.getParticipants();
                 User freshUser = userList.get(workerid - 1);
-                oldSet.add(freshUser);
-                freshProject.setParticipants(oldSet);
+
+                freshProject.setParticipants(freshProject.getParticipants() + freshUser.getId() + " ");
                 projectRepo.save(freshProject);
                 return String.format("Проекту %s добавлен работник %s", freshProject.getName(), freshUser.getName());
             }
@@ -214,11 +221,17 @@ public class ProjectServiceImpl implements ProjectService {
         Map<String, String> map = new HashMap<>();
 
         for (Project p : projectSet){
-            Set<User> users = p.getParticipants();
-            for (User u : users) {
-                String codeName = String.format("%d.%s.", u.getId(), u.getName());
-                if (!map.containsKey(codeName)) map.put(codeName,"");
-                map.put(codeName, map.get(codeName) + p.getName() + "_");
+            //Set<User> users = p.getParticipants();
+            String[] participantsIds = p.getParticipants().split(" ");
+
+            for (String u : participantsIds) {
+                Optional<User> optionalUser = userRepo.findById(Long.parseLong(u));
+                if (optionalUser.isPresent()) {
+                    User freshUser = optionalUser.get();
+                    String codeName = String.format("%d.%s.", freshUser.getId(), freshUser.getName());
+                    if (!map.containsKey(codeName)) map.put(codeName, "");
+                    map.put(codeName, map.get(codeName) + p.getName() + "_");
+                }
             }
         }
 
@@ -237,10 +250,11 @@ public class ProjectServiceImpl implements ProjectService {
         StringBuilder builder = new StringBuilder();
         builder.append("Ваши активные проекты:\n");
         for (Project project : projectList) {
-            Set<User> users = project.getParticipants();
-            for(User u : users) {
+            //Set<User> users = project.getParticipants();
+            if (project.getParticipants().contains(String.valueOf(id))) builder.append(project.getName()).append(' ');
+            /*for(User u : users) {
                 if (u.getId() == id) builder.append(project.getName()).append(' ');
-            }
+            }*/
         }
         return builder.toString();
     }
