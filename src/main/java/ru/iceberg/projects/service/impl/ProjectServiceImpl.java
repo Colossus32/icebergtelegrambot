@@ -1,6 +1,7 @@
 package ru.iceberg.projects.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.iceberg.projects.entity.Project;
 import ru.iceberg.projects.entity.User;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepo projectRepo;
@@ -208,6 +210,7 @@ public class ProjectServiceImpl implements ProjectService {
         Set<Project> projectSet = projectRepo.findAll().stream()
                 .filter(Project::isActive).collect(Collectors.toSet());
 
+        //id.userName. , projectName_projectName01_...
         Map<String, String> map = new HashMap<>();
 
         for (Project p : projectSet){
@@ -224,6 +227,7 @@ public class ProjectServiceImpl implements ProjectService {
             builder.append(key).append(map.get(key)).append(',');
         }
 
+        log.info(builder.toString());
         return builder.toString();
     }
 

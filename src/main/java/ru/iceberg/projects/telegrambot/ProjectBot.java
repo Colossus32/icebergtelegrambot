@@ -128,10 +128,14 @@ public class ProjectBot {
         try {
             HttpResponse<String> response = HttpClient.newHttpClient().send(request,HttpResponse.BodyHandlers.ofString());
             String bigData = response.body();
-            String[] allUsers = bigData.split(",");
-            generalReport(allUsers);
-            for (String s : allUsers) {
-                if (!s.startsWith("" + generalId)) sendToEachWorkerReport(s);
+            if (!bigData.equals("")) {
+                String[] allUsers = bigData.split(",");
+                generalReport(allUsers);
+                for (String s : allUsers) {
+                    if (!s.startsWith("" + generalId)) sendToEachWorkerReport(s);
+                }
+            } else {
+                log.warn("нет активных проектов"); //////////////////////////////////////////////////////////////////////////сделать напоминание о том, что проектов нет для всех users
             }
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
@@ -215,17 +219,20 @@ public class ProjectBot {
 
     private String getStartMenu() {
         return "Есть такие команды:\n" +
-                //"/start - test\n" +
-                "/name имя - изменяет ваше имя пользователя\n" +
+                "СОЗДАЕМ ПРОЕКТ:\n" +
                 "/new название - сам создает новый проект в базе\n" +
-                "/finish цифра - заканчивает проект, он больше не активен\n" +
-                "/my - находит ваши активные проекты\n" +
-                "/active - выводит список активных проектов\n" +
-                //"/delete цифра - удаляет проект с этим id\n" +
-                "/all - выводит все проекты\n" +
-                "/projectname цифра название - меняет имя указанного проекта\n" +
                 "/addtag цифра тэг - добавляет к проекту под этим id этот тэг\n" +
                 "/addworker - инструкция по добавлению участника к проекту\n" +
+                "РЕДАКТИРОВАНИЕ:\n" +
+                "/name имя - изменяет ваше имя пользователя\n" +
+                "/finish цифра - заканчивает проект, он больше не активен\n" +
+                "/projectname цифра название - меняет имя указанного проекта\n" +
+                //"/delete цифра - удаляет проект с этим id\n" +
+
+                "Поиск:\n" +
+                "/my - находит ваши активные проекты\n" +
+                "/active - выводит список активных проектов\n" +
+                "/all - выводит все проекты\n" +
                 "/findtag название - находит все проекты с таким тэгом\n" +
                 "/help - выводит список доступных команд";
     }

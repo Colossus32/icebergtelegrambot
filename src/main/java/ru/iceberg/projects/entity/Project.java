@@ -7,7 +7,6 @@ import ru.iceberg.projects.util.IceUtility;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
 
 @Data
@@ -27,9 +26,8 @@ public class Project {
     @Column(nullable = false)
     boolean isActive;
 
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id")
+    @ManyToOne(fetch = FetchType.EAGER , cascade = {CascadeType.REFRESH, CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE})
+    @JoinColumn(name = "author_id", referencedColumnName = "id")
     User author;
 
     @Column(nullable = false, unique = true)
@@ -40,7 +38,8 @@ public class Project {
 
     String tags;
 
-    @OneToMany(cascade = CascadeType.REMOVE)
+    @OneToMany(targetEntity = User.class, orphanRemoval = true, fetch = FetchType.EAGER, cascade = {CascadeType.REFRESH, CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE})
+    @JoinColumn(name = "participants_set")
     Set<User> participants;
 
     public Project(User author, String name) {

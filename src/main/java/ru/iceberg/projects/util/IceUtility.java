@@ -50,6 +50,10 @@ public class IceUtility {
             dir.mkdir();
             dir = new File(pathIntoDB + "/pdf");
             dir.mkdir();
+            dir = new File(pathIntoDB + "/замеры");
+            dir.mkdir();
+            dir = new File(pathIntoDB + "/jpg");
+            dir.mkdir();
         }
         else log.error("Error with the directory making");
         return pathIntoDB;
