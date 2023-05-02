@@ -36,7 +36,8 @@ public class ProjectServiceImpl implements ProjectService {
                 if (project.isPresent()) return CREATION_ERROR + 1;
                 Project freshProject = new Project(projectAuthor.get(),name);
                 projectRepo.save(freshProject);
-                return String.format("Проект создан:\nid=%d | %s | %s", freshProject.getId(), freshProject.getName(), freshProject.getPath());
+                return String.format("Проект создан:\nid=%d | %s | %s",
+                        freshProject.getId(), freshProject.getName(), IceUtility.transformToLongPath(freshProject.getPath()));
             } else return CREATION_ERROR + 2;
         } catch (Exception e){
             e.printStackTrace();

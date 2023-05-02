@@ -4,41 +4,48 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.request.SendMessage;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import ru.iceberg.projects.util.IceUtility;
 
-import java.io.FileNotFoundException;
+import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.Scanner;
 
 @Component
 @Slf4j
+@PropertySource("classpath:/application.properties")
 public class ProjectBot {
 
     TelegramBot bot;
 
-    String port;
+    private String val;
 
-    @Value("${ss.id}")
-    long generalId;
+    private String port;
+
+    private long generalId;
 
     public ProjectBot() {
 
         try {
-            Scanner scanner = new Scanner(new FileReader("bottoken.txt"));
-            String token = scanner.nextLine();
-            String sPort = scanner.nextLine();
-            scanner.close();
+            BufferedReader reader = new BufferedReader(new FileReader("bottoken.txt"));
+            String token = reader.readLine();
+            String sPort = reader.readLine();
+            long gId = Long.parseLong(reader.readLine());
+            String gVal = reader.readLine();
+            reader.close();
+
             this.bot = new TelegramBot(token);
             this.port = sPort;
-        } catch (FileNotFoundException e) {
+            this.generalId = gId;
+            this.val = gVal;
+
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -49,52 +56,59 @@ public class ProjectBot {
         bot.setUpdatesListener(element -> {
             element.forEach(pock -> {
 
-                if (pock.message() != null && pock.message().text() != null){
-                    String text = pock.message().text().toLowerCase();
-                    Long chatId = pock.message().chat().id();
-                    log.info("got not null message: " + text + " from " + chatId);
+                if (pock != null && pock.message() != null && pock.message().text() != null){
+                    if (!val.contains(String.valueOf(pock.message().chat().id()))) {
+                        bot.execute(new SendMessage(pock.message().chat().id(), "you're not validated user."));
+                        //return;
+                    }
+                    else {
+                        String text = pock.message().text().toLowerCase();
+                        Long chatId = pock.message().chat().id();
+                        log.info("got not null message: " + text + " from " + chatId);
 
-                    if (text.equals("/start")){
-                        saveUserToDBonStart(chatId);
-                    }
-                    if (text.startsWith("/new ")){
-                        createNewProjectShort(chatId, text);
-                    }
-                    if (text.startsWith("/name ")) {
-                        changeUserName(chatId,text);
-                    }
-                    if (text.startsWith("/help")) drawMenu(chatId);
+                        if (text.equals("/start")){
+                            saveUserToDBonStart(chatId);
+                        }
+                        if (text.startsWith("/new ")){
+                            createNewProjectShort(chatId, text);
+                        }
+                        if (text.startsWith("/name ")) {
+                            changeUserName(chatId,text);
+                        }
+                        if (text.startsWith("/help")) drawMenu(chatId);
 
-                    if (text.startsWith("/active")){
-                        getAllActiveProjects(chatId);
+                        if (text.startsWith("/active")){
+                            getAllActiveProjects(chatId);
+                        }
+                        if (text.startsWith("/delete ")) {
+                            deleteProjectById(chatId, text);
+                        }
+                        if (text.startsWith("/finish")) {
+                            finishProjectById(chatId, text);
+                        }
+                        if (text.startsWith("/all")) {
+                            showAllProjects(chatId);
+                        }
+                        if (text.startsWith("/projectname ")) {
+                            changeProjectName(chatId, text);
+                        }
+                        if (text.startsWith("/addtag")){
+                            addTagToTheProject(chatId, text);
+                        }
+                        if (text.startsWith("/addworker")){
+                            addWorkerInstruction(chatId);
+                        }
+                        if (text.startsWith("/worker")){
+                            addWorkerToProject(chatId, text);
+                        }
+                        if (text.startsWith("/findtag")){
+                            findProjectsByTag(chatId, text);
+                        }
+                        if (text.startsWith("/my")) {
+                            findMyActiveProjects(chatId);
+                        }
                     }
-                    if (text.startsWith("/delete ")) {
-                        deleteProjectById(chatId, text);
-                    }
-                    if (text.startsWith("/finish")) {
-                        finishProjectById(chatId, text);
-                    }
-                    if (text.startsWith("/all")) {
-                        showAllProjects(chatId);
-                    }
-                    if (text.startsWith("/projectname ")) {
-                        changeProjectName(chatId, text);
-                    }
-                    if (text.startsWith("/addtag")){
-                        addTagToTheProject(chatId, text);
-                    }
-                    if (text.startsWith("/addworker")){
-                        addWorkerInstruction(chatId);
-                    }
-                    if (text.startsWith("/worker")){
-                        addWorkerToProject(chatId, text);
-                    }
-                    if (text.startsWith("/findtag")){
-                        findProjectsByTag(chatId, text);
-                    }
-                    if (text.startsWith("/my")) {
-                        findMyActiveProjects(chatId);
-                    }
+
                 }
 
             });

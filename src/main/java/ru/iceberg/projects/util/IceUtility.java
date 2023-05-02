@@ -54,6 +54,8 @@ public class IceUtility {
             dir.mkdir();
             dir = new File(pathIntoDB + "/jpg");
             dir.mkdir();
+            dir = new File(pathIntoDB + "/print");
+            dir.mkdir();
         }
         else log.error("Error with the directory making");
         return pathIntoDB;
