@@ -25,10 +25,8 @@ public class Project {
     @Column(nullable = false)
     boolean isActive;
 
-    //@ManyToOne(fetch = FetchType.EAGER)
     @OneToOne
     @JoinColumn(name = "author_id", referencedColumnName = "id")
-    //@Column(nullable = false)
     User author;
 
     @Column(nullable = false, unique = true)
@@ -39,9 +37,6 @@ public class Project {
 
     String tags;
 
-    /*@OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "participants_set")
-    @OnDelete(action = OnDeleteAction.CASCADE)*/
     String participants;
 
     public Project(User author, String name) {

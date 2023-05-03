@@ -148,7 +148,7 @@ public class ProjectBot {
                     if (!s.startsWith("" + generalId)) sendToEachWorkerReport(s);
                 }
             } else {
-                log.warn("нет активных проектов"); //////////////////////////////////////////////////////////////////////////сделать напоминание о том, что проектов нет для всех users
+                log.warn("нет активных проектов");
                 request = HttpRequest.newBuilder()
                         .uri(URI.create(String.format("http://localhost:%s/api/v1/users/allids", port)))
                         .GET()
@@ -168,7 +168,9 @@ public class ProjectBot {
         String[] info = s.split("\\.");
         long id = Long.parseLong(info[0]);
         String name = info[1];
-        String projects = info[2].substring(1).replace("_", ", ");
+        String projects = info[2]
+                //.substring(1)
+                .replace("_", "\n");
         String message = String.format("%s, у тебя сейчас такие проекты:\n%s", name, projects);
         bot.execute(new SendMessage(id, message));
     }

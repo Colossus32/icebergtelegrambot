@@ -251,11 +251,7 @@ public class ProjectServiceImpl implements ProjectService {
         StringBuilder builder = new StringBuilder();
         builder.append("Ваши активные проекты:\n");
         for (Project project : projectList) {
-            //Set<User> users = project.getParticipants();
-            if (project.getParticipants().contains(String.valueOf(id))) builder.append(project.getName()).append(' ');
-            /*for(User u : users) {
-                if (u.getId() == id) builder.append(project.getName()).append(' ');
-            }*/
+            if (project.getParticipants().contains(String.valueOf(id))) builder.append(String.format("- %s\n", project.getName()));
         }
         return builder.toString();
     }
