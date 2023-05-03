@@ -57,7 +57,10 @@ public class IceUtility {
             dir = new File(pathIntoDB + "/print");
             dir.mkdir();
         }
-        else log.error("Error with the directory making");
+        else {
+            log.error("Error with the directory making");
+            return "";
+        }
         return pathIntoDB;
     }
 

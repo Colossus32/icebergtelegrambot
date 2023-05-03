@@ -33,21 +33,21 @@ public class ProjectServiceImpl implements ProjectService {
             Optional<Project> project = projectRepo.findByName(name);
 
             if (projectAuthor.isPresent()){
-                if (project.isPresent()) return CREATION_ERROR + 1;
+                if (project.isPresent()) return CREATION_ERROR;
                 Project freshProject = new Project(projectAuthor.get(),name);
                 projectRepo.save(freshProject);
                 return String.format("Проект создан:\nid=%d | %s | %s",
                         freshProject.getId(), freshProject.getName(), IceUtility.transformToLongPath(freshProject.getPath()));
-            } else return CREATION_ERROR + 2;
+            } else return CREATION_ERROR;
         } catch (Exception e){
             e.printStackTrace();
-            return CREATION_ERROR + 3;
+            return CREATION_ERROR;
         }
     }
 
     @Override
     public String addProject(Long authorId, String name, String path) {
-        if (!new File(path).exists()) return "По этому пути уже существует проект.";
+        if (!new File(path).exists()) return CREATION_ERROR;
         try{
             Optional<User> projectAuthor = userRepo.findById(authorId);
             Optional<Project> project = projectRepo.findByName(name);
@@ -56,7 +56,8 @@ public class ProjectServiceImpl implements ProjectService {
                 if (project.isPresent()) return CREATION_ERROR;
                 Project freshProject = new Project(projectAuthor.get(),name, path);
                 projectRepo.save(freshProject);
-                return String.format("Проект создан:\nid=%d | %s | %s", freshProject.getId(), freshProject.getName(), freshProject.getPath());
+                return String.format("Проект создан:\nid=%d | %s | %s", freshProject.getId(), freshProject.getName(),
+                        IceUtility.transformToLongPath(freshProject.getPath()));
             } else return CREATION_ERROR;
         } catch (Exception e){
             e.printStackTrace();

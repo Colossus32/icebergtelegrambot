@@ -398,9 +398,10 @@ public class ProjectBot {
     }
 
     private void createNewProjectShort(Long chatId, String text) {
-        log.info("get into bot part........");
+        String error = "Не удалось создать проект...\nПричины могут быть:\n-такое название проекта уже используется\n-создатель проекта отсутствует в базе данных";
+        log.info("создание нового проекта {}........", text);
         text = IceUtility.nameChecker(text);
-        if (!text.equals("")){
+        if (!text.equals(error)){
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(String.format("http://localhost:%s/api/v1/projects?author=%d&name=%s", port, chatId,text)))
                     .POST(HttpRequest.BodyPublishers.noBody())
@@ -411,7 +412,7 @@ public class ProjectBot {
             } catch (InterruptedException | IOException e) {
                 e.printStackTrace();
             }
-        }
+        } else bot.execute(new SendMessage(chatId, error));
 
     }
 
