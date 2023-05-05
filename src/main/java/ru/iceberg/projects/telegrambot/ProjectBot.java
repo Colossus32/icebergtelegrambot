@@ -142,7 +142,7 @@ public class ProjectBot {
             HttpResponse<String> response = HttpClient.newHttpClient().send(request,HttpResponse.BodyHandlers.ofString());
             String bigData = response.body();
             if (!bigData.equals("")) {
-                String[] allUsers = bigData.split(",");
+                String[] allUsers = bigData.split(" ");
                 generalReport(allUsers);
                 for (String s : allUsers) {
                     if (!s.startsWith("" + generalId)) sendToEachWorkerReport(s);

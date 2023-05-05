@@ -239,7 +239,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         StringBuilder builder = new StringBuilder();
         for (String key : map.keySet()) {
-            builder.append(key).append(map.get(key)).append(',');
+            builder.append(key).append(map.get(key)).append(' ');
         }
 
         log.info(builder.toString());
