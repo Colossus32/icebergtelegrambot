@@ -45,7 +45,7 @@ public class Project {
         this.dateOfCreation = new Date();
         this.isActive = true;
         this.path = IceUtility.createPath(name);
-        this.participants = String.format("%s ", author.getId());
+        this.participants = IceUtility.addParticipants(author.getId()); //String.format("%s ", author.getId());
         this.tags = name + " ";
     }
 
@@ -55,7 +55,7 @@ public class Project {
         this.path = path;
         this.dateOfCreation = new Date();
         this.isActive = true;
-        this.participants = String.format("%s ", author.getId());
+        this.participants = IceUtility.addParticipants(author.getId());
         this.tags = name + " ";
     }
 }

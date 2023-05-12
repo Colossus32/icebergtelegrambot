@@ -136,7 +136,7 @@ public class ProjectServiceImpl implements ProjectService {
         if (fromDB.isPresent()) {
             Project toUpdate = fromDB.get();
             tag = tag.replace('-', ' ');
-            String existedTags = toUpdate.getTags();
+            //String existedTags = toUpdate.getTags();
             //if (existedTags.equals("") || existedTags.equals("null")) toUpdate.setTags(tag);
             toUpdate.setTags(toUpdate.getTags() + " " + tag);
             projectRepo.save(toUpdate);
@@ -201,11 +201,11 @@ public class ProjectServiceImpl implements ProjectService {
             List<User> userList = userRepo.findAll();
             if (workerid > userList.size() || workerid < 1) return INPUT_ERROR;
             else {
-                //Set<User> oldSet = freshProject.getParticipants();
-                //String updatingParticipants = freshProject.getParticipants();
                 User freshUser = userList.get(workerid - 1);
 
-                freshProject.setParticipants(freshProject.getParticipants() + freshUser.getId() + " ");
+                if (!freshProject.getParticipants().contains(String.valueOf(freshUser.getId()))) {
+                    freshProject.setParticipants(freshProject.getParticipants() + freshUser.getId() + " ");
+                }
                 projectRepo.save(freshProject);
                 return String.format("Проекту %s добавлен работник %s", freshProject.getName(), freshUser.getName());
             }

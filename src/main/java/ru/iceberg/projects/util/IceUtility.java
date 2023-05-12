@@ -13,7 +13,7 @@ public class IceUtility {
 
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
-            if (!Character.isAlphabetic(c) && !Character.isDigit(c) && c != ' ') return "";
+            if (!Character.isAlphabetic(c) && !Character.isDigit(c) && c != ' ' && c != '-') return "";
         }
 
         return text.replace(' ', '-');
@@ -70,5 +70,26 @@ public class IceUtility {
 
     public static String transformToLongPath(String text){
         return text.replace("Z:/", "//ICEBERG/Public/").replace("/", "\\");
+    }
+
+    public static String deleteSpaces(String text){
+        text = text.trim();
+        char[] arr = text.toCharArray();
+        char prev = arr[0];
+        StringBuilder builder = new StringBuilder();
+        for (int i = 1; i < arr.length; i++) {
+            char cur = arr[i];
+            if (cur == ' ' && prev == ' ') continue;
+            else {
+                builder.append(cur);
+                prev = cur;
+            }
+        }
+        return builder.toString();
+    }
+
+    public static String addParticipants(long id) {
+        if (id != 829205726 && id != 415536606) return 415536606 + " " + 829205726 + " " + id + " ";
+        else return 415536606 + " " + 829205726 + " ";
     }
 }

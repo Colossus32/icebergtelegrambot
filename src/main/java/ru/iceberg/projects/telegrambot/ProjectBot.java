@@ -205,6 +205,7 @@ public class ProjectBot {
     }
 
     private void addWorkerToProject(Long chatId, String text) {
+        text = IceUtility.deleteSpaces(text);
         String[] strings = text.split(" ");
         if (IceUtility.onlyDigitChecker(strings[1]) && IceUtility.onlyDigitChecker(strings[2])) {
             int projectId = Integer.parseInt(strings[1]);
@@ -244,7 +245,7 @@ public class ProjectBot {
     private String getStartMenu() {
         return "Есть такие команды:\n" +
                 "СОЗДАЕМ ПРОЕКТ:\n" +
-                "/new название - сам создает новый проект в базе\n" +
+                "/new название - сам создает новый проект в базе. Допустимы пока буквы русского алфавита, пробел и дефис -\n" +
                 "/addtag цифра тэг - добавляет к проекту под этим id этот тэг\n" +
                 "/addworker - инструкция по добавлению участника к проекту\n" +
                 "РЕДАКТИРОВАНИЕ:\n" +
