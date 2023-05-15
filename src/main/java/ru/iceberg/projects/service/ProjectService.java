@@ -25,4 +25,6 @@ public interface ProjectService {
     String reportMail();
 
     String findMyActiveProjects(long id);
+
+    String addProjectLong(String body);
 }

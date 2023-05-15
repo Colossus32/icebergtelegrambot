@@ -256,4 +256,47 @@ public class ProjectServiceImpl implements ProjectService {
         }
         return builder.toString();
     }
+
+    @Override
+    public String addProjectLong(String body) {
+
+        System.out.println("Main string : " + body);
+
+        long id = Long.parseLong(body.substring(0,body.indexOf(' ')));
+        body = body.substring(body.indexOf(' ') + 1);
+        System.out.println("Check id : " + id);
+
+        String name = body.substring(0, body.indexOf('\\') - 1).trim();
+        body = body.substring(body.indexOf('\\'));
+        System.out.println("Check name : " + name);
+
+        String path = body;
+        System.out.println("Check path : " + path);
+
+        Optional<Project> fromDB = projectRepo.findByName(name);
+        if (fromDB.isPresent()) {
+            log.error("Ошибка создания проекта. Проект {} уже существует.", name);
+            return "Ошибка создания существующего проекта. Проект уже существует.";
+        }
+
+        //проверка существования пути
+        path = IceUtility.transformToZ(path);
+        System.out.println("Path : " + path);
+        File check = new File(path);
+        if (!check.exists()) {
+            log.error("Ошибка создания проекта. Путь {} не найден.", path);
+            return "Ошибка создания существующего проекта. Путь не найден.";
+        }
+
+        Optional<User> userFromDB = userRepo.findById(id);
+        System.out.println("Present : " + userFromDB.isPresent());
+        if (userFromDB.isPresent()){
+            projectRepo.save(new Project(userFromDB.get(), name, path));
+            log.info("Проект {} добавлен", name);
+            return String.format("Существующий проект по пути %s добавлен с названием %s", path, name);
+        } else {
+            log.error("Ошибка создания проекта. Пользователь {} не найден.", id);
+            return "Ошибка создания существующего проекта. Пользователь не найден.";
+        }
+    }
 }

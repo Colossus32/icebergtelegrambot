@@ -92,4 +92,9 @@ public class IceUtility {
         if (id != 829205726 && id != 415536606) return 415536606 + " " + 829205726 + " " + id + " ";
         else return 415536606 + " " + 829205726 + " ";
     }
+
+    public static String transformToZ(String path) {
+        path = path.replace('\\', '/');
+        return path.replace("//iceberg/public", "Z:");
+    }
 }

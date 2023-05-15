@@ -20,9 +20,8 @@ public class ProjectController {
 
     @PostMapping("/long")
     @Transactional
-    public String addProjectWithPath(@RequestParam("author") long id, @RequestParam("name") String name,
-                             @RequestParam("path") String path){
-        return projectService.addProject(id, name, path);
+    public String addProjectWithPath(@RequestBody String body){
+        return projectService.addProjectLong(body);
     }
 
     @GetMapping

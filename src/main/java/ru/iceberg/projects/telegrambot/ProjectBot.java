@@ -107,6 +107,9 @@ public class ProjectBot {
                         if (text.startsWith("/my")) {
                             findMyActiveProjects(chatId);
                         }
+                        if (text.startsWith("/existed")) {
+                            saveExistedProject(chatId, text);
+                        }
                     }
 
                 }
@@ -114,6 +117,21 @@ public class ProjectBot {
             });
             return UpdatesListener.CONFIRMED_UPDATES_ALL;
         });
+    }
+
+    private void saveExistedProject(Long chatId, String text) {
+        text = IceUtility.cutTheCommand(text);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:" + port + "/api/v1/projects/long"))
+                .POST(HttpRequest.BodyPublishers.ofString( chatId + " " + text))
+                .build();
+
+        try{
+            HttpResponse<String> response = HttpClient.newHttpClient().send(request,HttpResponse.BodyHandlers.ofString());
+            bot.execute(new SendMessage(chatId, response.body()));
+        } catch (InterruptedException | IOException e){
+            e.printStackTrace();
+        }
     }
 
     private void findMyActiveProjects(Long chatId) {
@@ -245,6 +263,7 @@ public class ProjectBot {
     private String getStartMenu() {
         return "Есть такие команды:\n" +
                 "СОЗДАЕМ ПРОЕКТ:\n" +
+                "/existed название путь - сам создает новый проект в базе. Допустимы пока буквы русского алфавита, пробел и дефис -\n" +
                 "/new название - сам создает новый проект в базе. Допустимы пока буквы русского алфавита, пробел и дефис -\n" +
                 "/addtag цифра тэг - добавляет к проекту под этим id этот тэг\n" +
                 "/addworker - инструкция по добавлению участника к проекту\n" +
