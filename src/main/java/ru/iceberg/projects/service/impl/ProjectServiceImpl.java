@@ -199,7 +199,7 @@ public class ProjectServiceImpl implements ProjectService {
         if (fromDB.isPresent()){
             Project freshProject = fromDB.get();
             List<User> userList = userRepo.findAll();
-            if (workerid > userList.size() || workerid < 1) return INPUT_ERROR;
+            if (workerid > userList.size() || workerid < 1) return INPUT_ERROR + " list";
             else {
                 User freshUser = userList.get(workerid - 1);
 
@@ -252,7 +252,9 @@ public class ProjectServiceImpl implements ProjectService {
         StringBuilder builder = new StringBuilder();
         builder.append("Ваши активные проекты:\n");
         for (Project project : projectList) {
-            if (project.getParticipants().contains(String.valueOf(id))) builder.append(String.format("- %s\n", project.getName()));
+            if (project.getParticipants().contains(String.valueOf(id))) {
+                builder.append(String.format("- %s   %s\n", project.getName(),IceUtility.transformToLongPath(project.getPath())));
+            }
         }
         return builder.toString();
     }
@@ -260,15 +262,11 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public String addProjectLong(String body) {
 
-        System.out.println("Main string : " + body);
-
         long id = Long.parseLong(body.substring(0,body.indexOf(' ')));
         body = body.substring(body.indexOf(' ') + 1);
-        System.out.println("Check id : " + id);
 
         String name = body.substring(0, body.indexOf('\\') - 1).trim();
         body = body.substring(body.indexOf('\\'));
-        System.out.println("Check name : " + name);
 
         String path = body;
         System.out.println("Check path : " + path);
@@ -281,7 +279,6 @@ public class ProjectServiceImpl implements ProjectService {
 
         //проверка существования пути
         path = IceUtility.transformToZ(path);
-        System.out.println("Path : " + path);
         File check = new File(path);
         if (!check.exists()) {
             log.error("Ошибка создания проекта. Путь {} не найден.", path);
@@ -293,7 +290,7 @@ public class ProjectServiceImpl implements ProjectService {
         if (userFromDB.isPresent()){
             projectRepo.save(new Project(userFromDB.get(), name, path));
             log.info("Проект {} добавлен", name);
-            return String.format("Существующий проект по пути %s добавлен с названием %s", path, name);
+            return String.format("Существующий проект по пути %s добавлен с названием %s", IceUtility.transformToLongPath(path), name);
         } else {
             log.error("Ошибка создания проекта. Пользователь {} не найден.", id);
             return "Ошибка создания существующего проекта. Пользователь не найден.";

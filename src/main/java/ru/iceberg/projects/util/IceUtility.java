@@ -3,6 +3,8 @@ package ru.iceberg.projects.util;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Set;
 
 @Slf4j
 public class IceUtility {
@@ -27,10 +29,26 @@ public class IceUtility {
     }
 
     public static String createPath(String name) {
-        boolean isAtFirstPartOfAlphabet = (name.charAt(0) - 'а') < 11;
-        String middleOfPath = isAtFirstPartOfAlphabet ? "!А-К" : "!Л-Я";
+        String middleOfPath = "";
+        String endOfPath = "";
+        char firstCharacter = name.toLowerCase().charAt(0);
+        if (Character.isDigit(firstCharacter)) {
+            middleOfPath = "!0-9 (Цифры)";
+            log.info("создан проект в директории цифр");
+        }
+        else if (firstCharacter >= 'a' && firstCharacter <= 'z') {
+            middleOfPath = "!A-Z (ENG)";
+            log.info("создан проект в английской директории");
+        }
+        else {
+            boolean isAtFirstPartOfAlphabet = (name.charAt(0) - 'а') < 11;
+            middleOfPath = isAtFirstPartOfAlphabet ? "!А-К" : "!Л-Я";
+            endOfPath = "/" + name.toUpperCase().charAt(0);
+            log.info("создан проект в русской директории");
 
-        String endOfPath = "/" + name.toUpperCase().charAt(0) + "/" + name;
+        }
+        endOfPath += "/" + name;
+
         endOfPath = endOfPath.replace('-', ' ');
 
         String pathIntoDB = "Z:/" + middleOfPath + endOfPath;
