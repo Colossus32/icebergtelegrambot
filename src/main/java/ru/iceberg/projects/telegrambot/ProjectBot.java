@@ -159,6 +159,7 @@ public class ProjectBot {
         try {
             HttpResponse<String> response = HttpClient.newHttpClient().send(request,HttpResponse.BodyHandlers.ofString());
             String bigData = response.body();
+            log.info("Daily mail data:\n" + bigData);
             if (!bigData.equals("")) {
                 String[] allUsers = bigData.split(" ");
                 generalReport(allUsers);
@@ -263,7 +264,7 @@ public class ProjectBot {
     private String getStartMenu() {
         return "Есть такие команды:\n" +
                 "СОЗДАЕМ ПРОЕКТ:\n" +
-                "/existed название путь - сам создает новый проект в базе. Допустимы пока буквы русского алфавита, пробел и дефис -\n" +
+                "/existed название путь - сам создает новый проект в базе. Допустимы пока буквы русского, латинского алфавита, пробел и дефис -\n" +
                 "/new название - сам создает новый проект в базе. Допустимы пока буквы русского алфавита, пробел и дефис -\n" +
                 "/addtag цифра тэг - добавляет к проекту под этим id этот тэг\n" +
                 "/addworker - инструкция по добавлению участника к проекту\n" +

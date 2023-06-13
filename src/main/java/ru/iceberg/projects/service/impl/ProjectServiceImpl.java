@@ -232,7 +232,7 @@ public class ProjectServiceImpl implements ProjectService {
                     User freshUser = optionalUser.get();
                     String codeName = String.format("%d.%s.", freshUser.getId(), freshUser.getName());
                     if (!map.containsKey(codeName)) map.put(codeName, "");
-                    map.put(codeName, map.get(codeName) + p.getName() + "_");
+                    map.put(codeName, map.get(codeName).trim().replace(' ', '-') + p.getName().trim().replace(' ', '-') + "_");
                 }
             }
         }
@@ -248,7 +248,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public String findMyActiveProjects(long id) {
-        List<Project> projectList = projectRepo.findAll();
+        List<Project> projectList = projectRepo.findAll().stream().filter(Project::isActive).collect(Collectors.toList());
         StringBuilder builder = new StringBuilder();
         builder.append("Ваши активные проекты:\n");
         for (Project project : projectList) {

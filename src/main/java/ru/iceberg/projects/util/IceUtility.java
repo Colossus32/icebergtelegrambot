@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Set;
 
 @Slf4j
@@ -34,20 +35,22 @@ public class IceUtility {
         char firstCharacter = name.toLowerCase().charAt(0);
         if (Character.isDigit(firstCharacter)) {
             middleOfPath = "!0-9 (Цифры)";
-            log.info("создан проект в директории цифр");
+            log.info("директория цифр");
         }
         else if (firstCharacter >= 'a' && firstCharacter <= 'z') {
             middleOfPath = "!A-Z (ENG)";
-            log.info("создан проект в английской директории");
+            log.info("английская директория");
         }
         else {
             boolean isAtFirstPartOfAlphabet = (name.charAt(0) - 'а') < 11;
             middleOfPath = isAtFirstPartOfAlphabet ? "!А-К" : "!Л-Я";
             endOfPath = "/" + name.toUpperCase().charAt(0);
-            log.info("создан проект в русской директории");
+            log.info("русская директория");
 
         }
-        endOfPath += "/" + name;
+        int year = (new Date().getYear() + 1900);
+
+        endOfPath += "/" + name + "/" + year;
 
         endOfPath = endOfPath.replace('-', ' ');
 
@@ -56,8 +59,8 @@ public class IceUtility {
         log.info("path is " + pathIntoDB);
         File dir = new File(pathIntoDB);
         if(!dir.exists()) {
-            dir.mkdir();
-            log.info("The directory was created");
+            if (dir.mkdirs()) log.info("The directory was created");
+            else log.warn("The mistake with creating path.");
             dir = new File(pathIntoDB + "/согласованно");
             dir.mkdir();
             dir = new File(pathIntoDB + "/3ds");
