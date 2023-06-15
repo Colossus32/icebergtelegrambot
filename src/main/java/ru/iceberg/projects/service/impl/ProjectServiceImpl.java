@@ -214,6 +214,7 @@ public class ProjectServiceImpl implements ProjectService {
         return INPUT_ERROR;
     }
 
+    /*
     @Override
     public String reportMail() {
         Set<Project> projectSet = projectRepo.findAll().stream()
@@ -244,6 +245,14 @@ public class ProjectServiceImpl implements ProjectService {
 
         log.info(builder.toString());
         return builder.toString();
+    }
+     */
+
+    //sql запрос сделать
+    @Override
+    public Set<Project> reportMail() {
+        return projectRepo.findAll().stream()
+                .filter(Project::isActive).collect(Collectors.toSet());
     }
 
     @Override

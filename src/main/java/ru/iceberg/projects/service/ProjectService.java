@@ -3,6 +3,7 @@ package ru.iceberg.projects.service;
 import ru.iceberg.projects.entity.Project;
 
 import java.util.Optional;
+import java.util.Set;
 
 public interface ProjectService {
     String addProject(Long authorId, String name);
@@ -22,7 +23,8 @@ public interface ProjectService {
 
     String addWorkerToProject(long projectid, int workerid);
 
-    String reportMail();
+    //String reportMail();
+    Set<Project> reportMail();
 
     String findMyActiveProjects(long id);
 

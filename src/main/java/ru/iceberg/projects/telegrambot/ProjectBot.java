@@ -1,5 +1,7 @@
 package ru.iceberg.projects.telegrambot;
 
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -7,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import ru.iceberg.projects.entity.Project;
+import ru.iceberg.projects.entity.User;
 import ru.iceberg.projects.util.IceUtility;
 
 import java.io.BufferedReader;
@@ -16,6 +20,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -59,7 +64,6 @@ public class ProjectBot {
                 if (pock != null && pock.message() != null && pock.message().text() != null){
                     if (!val.contains(String.valueOf(pock.message().chat().id()))) {
                         bot.execute(new SendMessage(pock.message().chat().id(), "you're not validated user."));
-                        //return;
                     }
                     else {
                         String text = pock.message().text().toLowerCase();
@@ -148,7 +152,7 @@ public class ProjectBot {
         }
     }
 
-    @Scheduled(cron = "${report.dailyprojects}")
+    /*@Scheduled(cron = "${report.dailyprojects}")
     //@Scheduled(cron = "${report.test}")
     public void sendDailyMail(){
 
@@ -179,6 +183,62 @@ public class ProjectBot {
                 }
             }
         } catch (InterruptedException | IOException e) {
+            e.printStackTrace();
+        }
+    }*/
+    @Scheduled(cron = "${report.dailyprojects}")
+    public void sendDailyMail(){
+        HttpRequest projectRequest = HttpRequest.newBuilder()
+                .uri(URI.create(String.format("http://localhost:%s/api/v1/projects/report", port)))
+                .GET()
+                .build();
+        HttpRequest usersRequest = HttpRequest.newBuilder()
+                .uri(URI.create(String.format("http://localhost:%s/api/v1/users/json", port)))
+                .GET()
+                .build();
+        try {
+            HttpResponse<String> projectResponse = HttpClient.newHttpClient().send(projectRequest, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> userResponse = HttpClient.newHttpClient().send(usersRequest, HttpResponse.BodyHandlers.ofString());
+
+            ObjectMapper mapper = new ObjectMapper();
+            JavaType projectType = mapper.getTypeFactory().constructCollectionType(Set.class,Project.class);
+            Set<Project> projectSet = mapper.readValue(projectResponse.body(), projectType);
+            JavaType userType = mapper.getTypeFactory().constructCollectionType(ArrayList.class, User.class);
+            List<User> userList = mapper.readValue(userResponse.body(), userType);
+
+            Map<Long, Set<Project>> map = new HashMap<>();
+            for (Project p : projectSet) {
+                String[] participants = p.getParticipants().split(" ");
+                for (String s : participants) {
+                    long currentId = Long.parseLong(s);
+                    if (!map.containsKey(currentId)) map.put(currentId, new HashSet<>());
+                    Set<Project> existedProjectSet = map.get(currentId);
+                    existedProjectSet.add(p);
+                    map.put(currentId, existedProjectSet);
+                }
+            }
+
+            StringBuilder bigBuilder = new StringBuilder();
+            for (User u : userList) {
+                long uId = u.getId();
+                StringBuilder sb = new StringBuilder();
+                if (!map.containsKey(uId) && uId != generalId) {
+                    String mes = String.format("%s, нет активных проектов", u.getName());
+                    log.info("Дневной отчет для {} отправлен, но проектов нет", u.getName());
+                    bot.execute(new SendMessage(uId, mes ));
+                    bigBuilder.append(mes).append('\n');
+                }
+                else if (uId != generalId){
+                    sb.append(String.format("%s, активные проекты:\n", u.getName()));
+                    for (Project p : map.get(uId)) sb.append(String.format("- %s\n", p.getName()));
+                    bot.execute(new SendMessage(uId, sb.toString()));
+                    log.info("Дневной отчет для {} отправлен", u.getName());
+                    bigBuilder.append(sb).append('\n');
+                }
+            }
+            bot.execute(new SendMessage(generalId,String.format("Сан Саныч, вот активные проекты по работникам:\n%s", bigBuilder.toString())));
+
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }

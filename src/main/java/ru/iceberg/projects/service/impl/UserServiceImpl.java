@@ -50,4 +50,9 @@ public class UserServiceImpl implements UserService {
         for (User u : userList) builder.append(u.getId()).append(' ');
         return builder.toString();
     }
+
+    @Override
+    public List<User> getAllIdsJson() {
+        return repo.findAll();
+    }
 }

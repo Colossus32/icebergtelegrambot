@@ -7,6 +7,7 @@ import ru.iceberg.projects.entity.User;
 import ru.iceberg.projects.service.UserService;
 
 import javax.transaction.Transactional;
+import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/users")
@@ -68,5 +69,9 @@ public class UserController {
     @GetMapping("/allids")
     public String getAllIds(){
         return userService.getAllIds();
+    }
+    @GetMapping("json")
+    public List<User> getAllIdsJson() {
+        return userService.getAllIdsJson();
     }
 }

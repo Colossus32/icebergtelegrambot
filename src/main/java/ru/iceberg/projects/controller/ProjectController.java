@@ -2,9 +2,11 @@ package ru.iceberg.projects.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import ru.iceberg.projects.entity.Project;
 import ru.iceberg.projects.service.ProjectService;
 
 import javax.transaction.Transactional;
+import java.util.Set;
 
 @RestController
 @RequestMapping("api/v1/projects")
@@ -74,8 +76,12 @@ public class ProjectController {
         return projectService.addWorkerToProject(projectid, workerid);
     }
 
-    @GetMapping("/report")
+    /*@GetMapping("/report")
     public String reportMail(){
+        return projectService.reportMail();
+    }*/
+    @GetMapping("/report")
+    public Set<Project> reportMail(){
         return projectService.reportMail();
     }
 }
