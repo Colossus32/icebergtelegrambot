@@ -3,9 +3,7 @@ package ru.iceberg.projects.util;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.Set;
 
 @Slf4j
 public class IceUtility {
@@ -16,7 +14,7 @@ public class IceUtility {
 
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
-            if (!Character.isAlphabetic(c) && !Character.isDigit(c) && c != ' ' && c != '-') return "";
+            if (!Character.isAlphabetic(c) && !Character.isDigit(c) && c != ' ' && c != '-' && c != '/') return "";
         }
 
         return text.replace(' ', '-');
@@ -32,7 +30,11 @@ public class IceUtility {
     public static String createPath(String name) {
         String middleOfPath = "";
         String endOfPath = "";
+        String[] nameParts = name.split("/");
+        String project = nameParts[0], subProject = nameParts[1];
+
         char firstCharacter = name.toLowerCase().charAt(0);
+
         if (Character.isDigit(firstCharacter)) {
             middleOfPath = "!0-9 (Цифры)";
             log.info("директория цифр");
@@ -50,18 +52,19 @@ public class IceUtility {
         }
         int year = (new Date().getYear() + 1900);
 
-        endOfPath += "/" + name + "/" + year;
+        endOfPath += "/" + project + "/" + year + "/" + subProject;
 
         endOfPath = endOfPath.replace('-', ' ');
 
         String pathIntoDB = "Z:/" + middleOfPath + endOfPath;
 
         log.info("path is " + pathIntoDB);
+
         File dir = new File(pathIntoDB);
         if(!dir.exists()) {
             if (dir.mkdirs()) log.info("The directory was created");
             else log.warn("The mistake with creating path.");
-            dir = new File(pathIntoDB + "/согласованно");
+            dir = new File(pathIntoDB + "/согласованно-" + name);
             dir.mkdir();
             dir = new File(pathIntoDB + "/3ds");
             dir.mkdir();
@@ -79,7 +82,7 @@ public class IceUtility {
             dir.mkdir();
         }
         else {
-            log.error("Error with the directory making");
+            log.error("Error with the directory making - root");
             return "";
         }
         return pathIntoDB;
@@ -117,5 +120,34 @@ public class IceUtility {
     public static String transformToZ(String path) {
         path = path.replace('\\', '/');
         return path.replace("//iceberg/public", "Z:");
+    }
+
+    public static String createNewPathFromOld(String oldPath, String tail) {
+        //path/project/
+        if (oldPath.contains("/20")) oldPath = oldPath.substring(0, oldPath.indexOf("20"));
+        return String.format("%s%d/%s",oldPath,1900 + new Date().getYear(), tail);
+    }
+    public static void createDirectoryTree(String pathIntoDB) {
+        File dir = new File(pathIntoDB);
+        if(!dir.exists()) {
+            if (dir.mkdirs()) log.info("The directory was created");
+            else log.warn("The mistake with creating path.");
+            dir = new File(pathIntoDB + "/согласованно");
+            dir.mkdir();
+            dir = new File(pathIntoDB + "/3ds");
+            dir.mkdir();
+            dir = new File(pathIntoDB + "/cdr");
+            dir.mkdir();
+            dir = new File(pathIntoDB + "/материалы");
+            dir.mkdir();
+            dir = new File(pathIntoDB + "/pdf");
+            dir.mkdir();
+            dir = new File(pathIntoDB + "/замеры");
+            dir.mkdir();
+            dir = new File(pathIntoDB + "/jpg");
+            dir.mkdir();
+            dir = new File(pathIntoDB + "/print");
+            dir.mkdir();
+        } else log.error("Ошибка создания дерева папок проекта");
     }
 }

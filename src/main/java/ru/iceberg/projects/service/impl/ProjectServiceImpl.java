@@ -10,6 +10,9 @@ import ru.iceberg.projects.repo.UserRepo;
 import ru.iceberg.projects.service.ProjectService;
 import ru.iceberg.projects.util.IceUtility;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -21,6 +24,10 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepo projectRepo;
     private final UserRepo userRepo;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
     private final String CREATION_ERROR =
             "Не удалось создать проект...\nПричины могут быть:\n-такое название проекта уже используется\n-создатель проекта отсутствует в базе данных";
     private final String INPUT_ERROR = "Ошибка ввода.";
@@ -28,18 +35,18 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public String addProject(Long authorId, String name) {
 
-        try{
+        try {
             Optional<User> projectAuthor = userRepo.findById(authorId);
             Optional<Project> project = projectRepo.findByName(name);
 
-            if (projectAuthor.isPresent()){
+            if (projectAuthor.isPresent()) {
                 if (project.isPresent()) return CREATION_ERROR;
-                Project freshProject = new Project(projectAuthor.get(),name);
+                Project freshProject = new Project(projectAuthor.get(), name);
                 projectRepo.save(freshProject);
                 return String.format("Проект создан:\nid=%d | %s | %s",
                         freshProject.getId(), freshProject.getName(), IceUtility.transformToLongPath(freshProject.getPath()));
             } else return CREATION_ERROR;
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return CREATION_ERROR;
         }
@@ -48,18 +55,18 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public String addProject(Long authorId, String name, String path) {
         if (!new File(path).exists()) return CREATION_ERROR;
-        try{
+        try {
             Optional<User> projectAuthor = userRepo.findById(authorId);
             Optional<Project> project = projectRepo.findByName(name);
 
-            if (projectAuthor.isPresent()){
+            if (projectAuthor.isPresent()) {
                 if (project.isPresent()) return CREATION_ERROR;
-                Project freshProject = new Project(projectAuthor.get(),name, path);
+                Project freshProject = new Project(projectAuthor.get(), name, path);
                 projectRepo.save(freshProject);
                 return String.format("Проект создан:\nid=%d | %s | %s", freshProject.getId(), freshProject.getName(),
                         IceUtility.transformToLongPath(freshProject.getPath()));
             } else return CREATION_ERROR;
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return CREATION_ERROR;
         }
@@ -68,7 +75,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public String deleteProjectById(long id) {
         Optional<Project> fromDB = projectRepo.findById(id);
-        if (fromDB.isPresent()){
+        if (fromDB.isPresent()) {
             projectRepo.deleteById(id);
             return String.format("Проект id = %d удален. Но проект остается на сервере по пути: %s", id, fromDB.get().getPath());
         } else return "Проект отсутствует в базе. Удаление не случилось.";
@@ -105,7 +112,7 @@ public class ProjectServiceImpl implements ProjectService {
     public String findProjectsByTag(String tag) {
         List<Project> result = projectRepo.findAll().stream()
                 .filter(element -> findTagMatch(element, tag))
-                .sorted((a,b) -> (int) (a.getDateOfCreation().getTime() - b.getDateOfCreation().getTime()))
+                .sorted((a, b) -> (int) (a.getDateOfCreation().getTime() - b.getDateOfCreation().getTime()))
                 .collect(Collectors.toList());
         StringBuilder builder = new StringBuilder();
         for (Project p : result) {
@@ -158,9 +165,10 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public String finishProjectById(long id) {
         Optional<Project> fromDB = projectRepo.findById(id);
-        if (fromDB.isPresent()){
+        if (fromDB.isPresent()) {
             Project fresh = fromDB.get();
-            if (fresh.getDateOfCompletion() != null) return String.format("Проект %s с id=%d уже завершен.", fresh.getName(), id);
+            if (fresh.getDateOfCompletion() != null)
+                return String.format("Проект %s с id=%d уже завершен.", fresh.getName(), id);
             fresh.setActive(false);
             fresh.setDateOfCompletion(new Date());
             projectRepo.save(fresh);
@@ -176,7 +184,11 @@ public class ProjectServiceImpl implements ProjectService {
         builder.append("Проекты:\n");
         for (Project project : list) {
             String active = project.isActive() ? "активен" : "завершен";
-            builder.append(String.format("id=%d | %s | %s \n", project.getId(), project.getName(), active));
+            builder.append(String.format("id=%d | %s | %s |\n%s \n---------------------------\n",
+                    project.getId(),
+                    project.getName(),
+                    active,
+                    IceUtility.transformToLongPath(project.getPath())));
         }
         return builder.toString();
     }
@@ -184,7 +196,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public String changeName(long id, String name) {
         Optional<Project> fromDB = projectRepo.findById(id);
-        if (fromDB.isPresent()){
+        if (fromDB.isPresent()) {
             Project fresh = fromDB.get();
             fresh.setName(name);
             projectRepo.save(fresh);
@@ -196,7 +208,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public String addWorkerToProject(long projectid, int workerid) {
         Optional<Project> fromDB = projectRepo.findById(projectid);
-        if (fromDB.isPresent()){
+        if (fromDB.isPresent()) {
             Project freshProject = fromDB.get();
             List<User> userList = userRepo.findAll();
             if (workerid > userList.size() || workerid < 1) return INPUT_ERROR + " list";
@@ -214,55 +226,26 @@ public class ProjectServiceImpl implements ProjectService {
         return INPUT_ERROR;
     }
 
-    /*
-    @Override
-    public String reportMail() {
-        Set<Project> projectSet = projectRepo.findAll().stream()
-                .filter(Project::isActive).collect(Collectors.toSet());
-
-        //id.userName. , projectName_projectName01_...
-        Map<String, String> map = new HashMap<>();
-
-        for (Project p : projectSet){
-            //Set<User> users = p.getParticipants();
-            String[] participantsIds = p.getParticipants().split(" ");
-
-            for (String u : participantsIds) {
-                Optional<User> optionalUser = userRepo.findById(Long.parseLong(u));
-                if (optionalUser.isPresent()) {
-                    User freshUser = optionalUser.get();
-                    String codeName = String.format("%d.%s.", freshUser.getId(), freshUser.getName());
-                    if (!map.containsKey(codeName)) map.put(codeName, "");
-                    map.put(codeName, map.get(codeName).trim().replace(' ', '-') + p.getName().trim().replace(' ', '-') + "_");
-                }
-            }
-        }
-
-        StringBuilder builder = new StringBuilder();
-        for (String key : map.keySet()) {
-            builder.append(key).append(map.get(key)).append(' ');
-        }
-
-        log.info(builder.toString());
-        return builder.toString();
-    }
-     */
-
-    //sql запрос сделать
     @Override
     public Set<Project> reportMail() {
-        return projectRepo.findAll().stream()
-                .filter(Project::isActive).collect(Collectors.toSet());
+
+        String sqlQuery = "SELECT p FROM Project p WHERE p.isActive = true";
+
+        TypedQuery<Project> query = entityManager.createQuery(sqlQuery, Project.class);
+        List<Project> resultList = query.getResultList();
+        return new HashSet<>(resultList);
     }
 
     @Override
     public String findMyActiveProjects(long id) {
-        List<Project> projectList = projectRepo.findAll().stream().filter(Project::isActive).collect(Collectors.toList());
+
+        Set<Project> projectSet = reportMail();
         StringBuilder builder = new StringBuilder();
         builder.append("Ваши активные проекты:\n");
-        for (Project project : projectList) {
+
+        for (Project project : projectSet) {
             if (project.getParticipants().contains(String.valueOf(id))) {
-                builder.append(String.format("- %s   %s\n", project.getName(),IceUtility.transformToLongPath(project.getPath())));
+                builder.append(String.format("- %s   %s\n", project.getName(), IceUtility.transformToLongPath(project.getPath())));
             }
         }
         return builder.toString();
@@ -271,7 +254,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public String addProjectLong(String body) {
 
-        long id = Long.parseLong(body.substring(0,body.indexOf(' ')));
+        long id = Long.parseLong(body.substring(0, body.indexOf(' ')));
         body = body.substring(body.indexOf(' ') + 1);
 
         String name = body.substring(0, body.indexOf('\\') - 1).trim();
@@ -296,7 +279,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         Optional<User> userFromDB = userRepo.findById(id);
         System.out.println("Present : " + userFromDB.isPresent());
-        if (userFromDB.isPresent()){
+        if (userFromDB.isPresent()) {
             projectRepo.save(new Project(userFromDB.get(), name, path));
             log.info("Проект {} добавлен", name);
             return String.format("Существующий проект по пути %s добавлен с названием %s", IceUtility.transformToLongPath(path), name);
@@ -304,5 +287,39 @@ public class ProjectServiceImpl implements ProjectService {
             log.error("Ошибка создания проекта. Пользователь {} не найден.", id);
             return "Ошибка создания существующего проекта. Пользователь не найден.";
         }
+    }
+
+    @Override
+    public String wakeUpProjectById(long id) {
+        Optional<Project> fromDB = projectRepo.findById(id);
+        if (fromDB.isPresent()) {
+            Project existed = fromDB.get();
+            existed.setDateOfCompletion(null);
+            existed.setActive(true);
+            projectRepo.save(existed);
+            log.info("У проекта с id={} изменена активность и удалена дата завершения.", id);
+            return String.format("Проект с id=%d изменен. Теперь он активен и убрана дата завершения.", id);
+        } else {
+            log.warn("Ошибка перевода проекта id={} в активное состояние.", id);
+            return String.format("Проекта с id=%d нет в базе.", id);
+        }
+    }
+
+    @Override
+    public String addSubProject(String sub) {
+        String[] strings = sub.split("/");
+        strings[0] = strings[0].replace(' ', '-');
+        Optional<Project> fromDB = projectRepo.findByName(strings[0]);
+        if (fromDB.isPresent()) {
+            Project generalProject = fromDB.get();
+            String oldPath = generalProject.getPath();
+            String newPath = IceUtility.createNewPathFromOld(oldPath, strings[1]);
+            log.info("{} - путь подпроета", newPath);
+            Project fresh = new Project(generalProject.getAuthor(), strings[1], newPath);
+            projectRepo.save(fresh);
+            IceUtility.createDirectoryTree(fresh.getPath());
+            log.info("{} - подпроект создан в директории {}", fresh.getName(), IceUtility.transformToLongPath(fresh.getPath()));
+            return String.format("В %s создан подпроект %s по пути %s", generalProject.getName(), fresh.getName(), fresh.getPath());
+        } else return "Нет проекта " + strings[0] + " в базе. Невозможно создать подпроект.";
     }
 }

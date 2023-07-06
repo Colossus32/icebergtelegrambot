@@ -16,14 +16,20 @@ public class ProjectController {
 
     @PostMapping
     @Transactional
-    public String addProject(@RequestParam("author") long id, @RequestParam("name") String name){
-        return projectService.addProject(id, name);
+    public String addProject(@RequestParam("author") long id, @RequestBody String text){
+        return projectService.addProject(id, text);
     }
 
     @PostMapping("/long")
     @Transactional
     public String addProjectWithPath(@RequestBody String body){
         return projectService.addProjectLong(body);
+    }
+
+    @PostMapping("/sub")
+    @Transactional
+    public String addSubProject(@RequestBody String sub) {
+        return projectService.addSubProject(sub);
     }
 
     @GetMapping
@@ -46,9 +52,16 @@ public class ProjectController {
         return projectService.deleteProjectById(id);
     }
 
+    @Transactional
     @PutMapping("/{id}")
     public String finishProjectById(@PathVariable("id") long id){
         return projectService.finishProjectById(id);
+    }
+
+    @Transactional
+    @PutMapping("/wake/{id}")
+    public String wakeUpProjectById(@PathVariable("id") long id) {
+        return projectService.wakeUpProjectById(id);
     }
 
     @GetMapping("/all")
@@ -56,11 +69,13 @@ public class ProjectController {
         return projectService.showAllProjects();
     }
 
+    @Transactional
     @PostMapping("/{id}")
     public String changeProjectName(@PathVariable("id") long id, @RequestParam("name") String name){
         return projectService.changeName(id, name);
     }
 
+    @Transactional
     @PostMapping("/tags")
     public String addTag (@RequestParam("id") long id, @RequestParam("tag") String tag){
         return projectService.addTag(id, tag);
@@ -71,6 +86,7 @@ public class ProjectController {
         return projectService.findProjectsByTag(tag);
     }
 
+    @Transactional
     @PostMapping("/workers")
     public String addWorkerToProject(@RequestParam("projectid") long projectid, @RequestParam("workerid") int workerid){
         return projectService.addWorkerToProject(projectid, workerid);

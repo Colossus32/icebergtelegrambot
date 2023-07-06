@@ -57,5 +57,6 @@ public class Project {
         this.isActive = true;
         this.participants = IceUtility.addParticipants(author.getId());
         this.tags = name + " ";
+        log.info("Удачно создан проект {}", this.getName());
     }
 }

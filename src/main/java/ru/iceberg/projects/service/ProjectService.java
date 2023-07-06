@@ -29,4 +29,8 @@ public interface ProjectService {
     String findMyActiveProjects(long id);
 
     String addProjectLong(String body);
+
+    String wakeUpProjectById(long id);
+
+    String addSubProject(String sub);
 }

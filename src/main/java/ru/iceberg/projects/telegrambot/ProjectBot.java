@@ -114,6 +114,12 @@ public class ProjectBot {
                         if (text.startsWith("/existed")) {
                             saveExistedProject(chatId, text);
                         }
+                        if (text.startsWith("/wakeup")) {
+                            wakeUpProject(chatId, text);
+                        }
+                        if (text.startsWith("/addnew")) {
+                            addSubProject(chatId, text);
+                        }
                     }
 
                 }
@@ -121,6 +127,37 @@ public class ProjectBot {
             });
             return UpdatesListener.CONFIRMED_UPDATES_ALL;
         });
+    }
+
+    //to do new realisation
+    private void addSubProject(Long chatId, String text) {
+        text = IceUtility.cutTheCommand(text);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(String.format("http://localhost:%s/api/v1/projects/sub", port)))
+                .POST(HttpRequest.BodyPublishers.ofString(text))
+                .build();
+        try {
+            HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            bot.execute(new SendMessage(chatId, response.body()));
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void wakeUpProject(Long chatId, String text) {
+
+        String[] strings = text.split(" ");
+        Long projectId = Long.parseLong(strings[1]);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(String.format("http://localhost:%s/api/v1/projects/wake/%d", port, projectId)))
+                .PUT(HttpRequest.BodyPublishers.noBody())
+                .build();
+        try {
+            HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            bot.execute(new SendMessage(chatId, response.body()));
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private void saveExistedProject(Long chatId, String text) {
@@ -152,42 +189,9 @@ public class ProjectBot {
         }
     }
 
-    /*@Scheduled(cron = "${report.dailyprojects}")
-    //@Scheduled(cron = "${report.test}")
-    public void sendDailyMail(){
-
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(String.format("http://localhost:%s/api/v1/projects/report", port)))
-                .GET()
-                .build();
-        try {
-            HttpResponse<String> response = HttpClient.newHttpClient().send(request,HttpResponse.BodyHandlers.ofString());
-            String bigData = response.body();
-            log.info("Daily mail data:\n" + bigData);
-            if (!bigData.equals("")) {
-                String[] allUsers = bigData.split(" ");
-                generalReport(allUsers);
-                for (String s : allUsers) {
-                    if (!s.startsWith("" + generalId)) sendToEachWorkerReport(s);
-                }
-            } else {
-                log.warn("нет активных проектов");
-                request = HttpRequest.newBuilder()
-                        .uri(URI.create(String.format("http://localhost:%s/api/v1/users/allids", port)))
-                        .GET()
-                        .build();
-                response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-                String[] sIds = response.body().split(" ");
-                for (String stringId : sIds){
-                    bot.execute(new SendMessage(Long.parseLong(stringId), "Нет активных проектов."));
-                }
-            }
-        } catch (InterruptedException | IOException e) {
-            e.printStackTrace();
-        }
-    }*/
     @Scheduled(cron = "${report.dailyprojects}")
     public void sendDailyMail(){
+        //запрашиваем все активные проекты и всех пользователей, чтобы организовать рассылку
         HttpRequest projectRequest = HttpRequest.newBuilder()
                 .uri(URI.create(String.format("http://localhost:%s/api/v1/projects/report", port)))
                 .GET()
@@ -206,6 +210,7 @@ public class ProjectBot {
             JavaType userType = mapper.getTypeFactory().constructCollectionType(ArrayList.class, User.class);
             List<User> userList = mapper.readValue(userResponse.body(), userType);
 
+            //мапим айдишник пользователя с проектами, в которых он является участником
             Map<Long, Set<Project>> map = new HashMap<>();
             for (Project p : projectSet) {
                 String[] participants = p.getParticipants().split(" ");
@@ -218,17 +223,21 @@ public class ProjectBot {
                 }
             }
 
+            //убираем директора из рассылки персональных проектов
+            userList.remove(generalId);
+
+            //делаем рассылку проектов каждому персонально
             StringBuilder bigBuilder = new StringBuilder();
             for (User u : userList) {
                 long uId = u.getId();
                 StringBuilder sb = new StringBuilder();
-                if (!map.containsKey(uId) && uId != generalId) {
+                if (!map.containsKey(uId)) {
                     String mes = String.format("%s, нет активных проектов", u.getName());
                     log.info("Дневной отчет для {} отправлен, но проектов нет", u.getName());
                     bot.execute(new SendMessage(uId, mes ));
                     bigBuilder.append(mes).append('\n');
                 }
-                else if (uId != generalId){
+                else {
                     sb.append(String.format("%s, активные проекты:\n", u.getName()));
                     for (Project p : map.get(uId)) sb.append(String.format("- %s\n", p.getName()));
                     bot.execute(new SendMessage(uId, sb.toString()));
@@ -236,33 +245,12 @@ public class ProjectBot {
                     bigBuilder.append(sb).append('\n');
                 }
             }
+            //высылаем директору общий отчет по всем проектам работников
             bot.execute(new SendMessage(generalId,String.format("Сан Саныч, вот активные проекты по работникам:\n%s", bigBuilder.toString())));
 
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
-    }
-
-    private void sendToEachWorkerReport(String s) {
-        String[] info = s.split("\\.");
-        long id = Long.parseLong(info[0]);
-        String name = info[1];
-        String projects = info[2]
-                //.substring(1)
-                .replace("_", "\n");
-        String message = String.format("%s, у тебя сейчас такие проекты:\n%s", name, projects);
-        bot.execute(new SendMessage(id, message));
-    }
-
-    private void generalReport(String[] allUsers) {
-
-        StringBuilder builder = new StringBuilder();
-
-        for (String s : allUsers) {
-            s = s.substring(s.indexOf('.') + 1).replace(".", " : ").replace("_", ", ");
-            builder.append(s).append('\n');
-        }
-        bot.execute(new SendMessage(generalId, builder.toString()));
     }
 
     private void findProjectsByTag(Long chatId, String text) {
@@ -324,17 +312,20 @@ public class ProjectBot {
     private String getStartMenu() {
         return "Есть такие команды:\n" +
                 "СОЗДАЕМ ПРОЕКТ:\n" +
+
+                "/new название/проект - сам создает новый проект в базе. Допустимы пока буквы русского алфавита, пробел и дефис -\n" +
                 "/existed название путь - сам создает новый проект в базе. Допустимы пока буквы русского, латинского алфавита, пробел и дефис -\n" +
-                "/new название - сам создает новый проект в базе. Допустимы пока буквы русского алфавита, пробел и дефис -\n" +
+                "/addnew название проекта/название подпроекта - создает подпроект в существующей директории\n" +
                 "/addtag цифра тэг - добавляет к проекту под этим id этот тэг\n" +
                 "/addworker - инструкция по добавлению участника к проекту\n" +
                 "РЕДАКТИРОВАНИЕ:\n" +
                 "/name имя - изменяет ваше имя пользователя\n" +
                 "/finish цифра - заканчивает проект, он больше не активен\n" +
                 "/projectname цифра название - меняет имя указанного проекта\n" +
+                "/wakeup цифра - возвращает проект в активное состояние\n" +
                 //"/delete цифра - удаляет проект с этим id\n" +
 
-                "Поиск:\n" +
+                "ПОИСК:\n" +
                 "/my - находит ваши активные проекты\n" +
                 "/active - выводит список активных проектов\n" +
                 "/all - выводит все проекты\n" +
@@ -481,11 +472,14 @@ public class ProjectBot {
     private void createNewProjectShort(Long chatId, String text) {
         String error = "Не удалось создать проект...\nПричины могут быть:\n-такое название проекта уже используется\n-создатель проекта отсутствует в базе данных";
         log.info("создание нового проекта {}........", text);
+
         text = IceUtility.nameChecker(text);
+
         if (!text.equals(error)){
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(String.format("http://localhost:%s/api/v1/projects?author=%d&name=%s", port, chatId,text)))
-                    .POST(HttpRequest.BodyPublishers.noBody())
+                    .uri(URI.create(String.format("http://localhost:%s/api/v1/projects?author=%d", port, chatId)))
+                    .header("Content-Type", "text/plain; charset=UTF-8")
+                    .POST(HttpRequest.BodyPublishers.ofString(text))
                     .build();
             try {
                 HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
