@@ -156,8 +156,8 @@ public class ProjectServiceImpl implements ProjectService {
         List<Project> fromDB = projectRepo.findAll().stream().filter(Project::isActive).collect(Collectors.toList());
         StringBuilder builder = new StringBuilder();
         for (Project project : fromDB) {
-            builder.append("id: ").append(project.getId()).append(" | ").append(project.getName()).append(" | ")
-                    .append(IceUtility.transformToLongPath(project.getPath())).append('\n');
+            builder.append("id: ").append(project.getId()).append(" | ").append(project.getName()).append(" | \n")
+                    .append(IceUtility.transformToLongPath(project.getPath())).append('\n').append('#');
         }
         return builder.toString().trim();
     }
@@ -184,7 +184,7 @@ public class ProjectServiceImpl implements ProjectService {
         builder.append("Проекты:\n");
         for (Project project : list) {
             String active = project.isActive() ? "активен" : "завершен";
-            builder.append(String.format("id=%d | %s | %s |\n%s \n---------------------------\n",
+            builder.append(String.format("id=%d | %s | %s |\n%s \n#\n",
                     project.getId(),
                     project.getName(),
                     active,

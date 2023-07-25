@@ -313,7 +313,7 @@ public class ProjectBot {
         return "Есть такие команды:\n" +
                 "СОЗДАЕМ ПРОЕКТ:\n" +
 
-                "/new название/проект - сам создает новый проект в базе. Допустимы пока буквы русского алфавита, пробел и дефис -\n" +
+                "/new название/проект - сам создает новый проект в базе.\n" +
                 "/existed название путь - сам создает новый проект в базе. Допустимы пока буквы русского, латинского алфавита, пробел и дефис -\n" +
                 "/addnew название проекта/название подпроекта - создает подпроект в существующей директории\n" +
                 "/addtag цифра тэг - добавляет к проекту под этим id этот тэг\n" +
@@ -390,7 +390,8 @@ public class ProjectBot {
                 .build();
         try{
             HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-            bot.execute(new SendMessage(chatId, response.body()));
+            String[] messages = response.body().split("#");
+            for(String mes : messages) bot.execute(new SendMessage(chatId, mes));
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         }
@@ -442,7 +443,9 @@ public class ProjectBot {
                 .build();
         try{
             HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-            bot.execute(new SendMessage(chatId, response.body()));
+            String[] messages = response.body().split("#");
+            for(String mess : messages) bot.execute(new SendMessage(chatId, mess));
+
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         }
